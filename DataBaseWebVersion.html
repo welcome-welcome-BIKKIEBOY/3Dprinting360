@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Printing 360 Portal</title>
+<style>
+body { font-family:'Segoe UI',sans-serif; background: linear-gradient(to right,#141e30,#243b55); color:#fff; margin:0; padding:0; }
+h1,h2,h3 { text-align:center; color:#ffd700; }
+.card { max-width:900px; margin:20px auto; padding:20px; background:rgba(255,255,255,0.05); border-radius:15px; box-shadow:0 0 15px rgba(0,0,0,0.4); text-align:center; }
+.hidden { display:none; }
+.big-button { display:block; margin:10px auto; padding:15px; width:80%; max-width:300px; font-size:1.1em; border:none; border-radius:12px; background:linear-gradient(45deg,#ff512f,#dd2476); color:white; cursor:pointer; transition:0.3s; }
+.big-button:hover { transform:scale(1.05); opacity:0.9; }
+input,select { padding:10px; margin:5px 0; border-radius:8px; border:none; width:200px; }
+button { cursor:pointer; }
+.product-card { background: rgba(255,255,255,0.9); border-radius:15px; padding:15px; text-align:center; box-shadow:0 5px 15px rgba(0,0,0,0.3); cursor:pointer; transition:0.3s; color:#000; }
+.product-card:hover { transform: scale(1.05); }
+.product-price { background:#ffd700; color:#000; padding:5px 10px; border-radius:8px; display:inline-block; margin-top:5px; font-weight:bold; }
+.cart { background: rgba(255,255,255,0.95); color:#000; border-radius:15px; padding:10px; margin-top:20px; max-width:400px; text-align:left; margin-left:auto; margin-right:auto; }
+.cart-item { display:flex; justify-content: space-between; padding:5px 0; }
+</style>
+</head>
+<body>
+<h1>3D Printing 360 Portal</h1>
+
+<!-- LOGIN -->
+<div id="login" class="card">
+    <h2>Sign In</h2>
+    <input id="username" placeholder="Username"><br>
+    <input id="password" type="password" placeholder="Password"><br>
+    <button class="big-button" onclick="login()">Sign In</button>
+    <button class="big-button" onclick="showCreateAccount()">Create Account</button>
+    <button class="big-button" onclick="forgotPassword()">Forgot Password</button>
+</div>
+
+<!-- CREATE ACCOUNT -->
+<div id="createAccount" class="card hidden">
+    <h2>Create Account</h2>
+    <input id="firstName" placeholder="First Name"><br>
+    <input id="lastName" placeholder="Last Name"><br>
+    <input id="dob" type="date" placeholder="Date of Birth"><br>
+    <input id="address" placeholder="Address"><br>
+    <input id="newPass" type="password" placeholder="Password"><br>
+    <button class="big-button" onclick="createCustomerPortalAccount()">Create Account</button>
+    <button class="big-button" onclick="backToLogin()">Back</button>
+</div>
+
+<!-- STAFF DASHBOARD -->
+<div id="dashboard" class="card hidden">
+    <h2>Welcome, <span id="currentUser"></span></h2>
+    <p>3D Printing 360 specializes in cutting-edge 3D printing solutions.</p>
+    <button class="big-button" onclick="showSection('customers')" id="customersBtn">Customers</button>
+    <button class="big-button" onclick="showSection('products')">Products</button>
+    <button class="big-button" onclick="showSection('viewCarts')">View Customer Carts</button>
+    <button class="big-button" onclick="changeOwnPassword()">Change My Password</button>
+    <button class="big-button" onclick="logout()">Sign Out</button>
+    <button class="big-button" id="salesBtn" onclick="showSection('sales')">Sales</button>
+    <button class="big-button" id="accountsBtn" onclick="showSection('accounts')">Accounts</button>
+</div>
+
+<!-- CUSTOMER DASHBOARD -->
+<div id="customerDashboard" class="card hidden" style="background: linear-gradient(to right,#ff7e5f,#feb47b); color:#000;">
+    <h1>Welcome, <span id="currentCustomer"></span>!</h1>
+    <div id="customerProductGrid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap:20px; padding:20px;"></div>
+    <div class="cart" id="cartDiv"><h3>Your Cart</h3><div id="cartItems"></div><p>Total: $<span id="cartTotal">0</span></p><button class="big-button" onclick="checkoutCart()">Checkout</button></div>
+    <button class="big-button" onclick="logoutCustomer()">Sign Out</button>
+</div>
+
+<!-- SALES -->
+<div id="sales" class="card hidden">
+    <h2>Sales Department</h2>
+    <p>Current Total: $<span id="salesTotal">0</span></p>
+    <button class="big-button" onclick="modifySales()">Modify Sales</button>
+    <button class="big-button" onclick="showSection('dashboard')">Back to Dashboard</button>
+</div>
+
+<!-- CUSTOMERS -->
+<div id="customers" class="card hidden">
+    <h2>Customers</h2>
+    <ul id="customerList"></ul>
+    <button class="big-button" onclick="addCustomer()">Add Customer</button>
+    <button class="big-button" onclick="showSection('dashboard')">Back to Dashboard</button>
+</div>
+
+<!-- PRODUCTS -->
+<div id="products" class="card hidden">
+    <h2>Products</h2>
+    <div id="productCatalog" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap:20px;"></div>
+    <div id="addProductForm" class="hidden">
+        <h3>Add New Product</h3>
+        <input id="prodName" placeholder="Product Name"><br>
+        <input id="prodImage" placeholder="Image URL"><br>
+        <input id="prodDesc" placeholder="Description"><br>
+        <input id="prodPrice" type="number" placeholder="Price"><br>
+        <input id="prodStock" type="number" placeholder="Stock"><br>
+        <button class="big-button" onclick="addNewProduct()">Add Product</button>
+    </div>
+    <button class="big-button" onclick="showSection('dashboard')">Back to Dashboard</button>
+</div>
+
+<!-- ACCOUNTS -->
+<div id="accounts" class="card hidden">
+    <h2>Accounts Management</h2>
+    <ul id="accountList"></ul>
+    <h3>Add Account</h3>
+    <input id="newAccount" placeholder="New Username"><br>
+    <input id="newAccountPass" type="password" placeholder="Password"><br>
+    <button class="big-button" onclick="addAccount()">Add Account</button>
+    <h3>Reset Account Password</h3>
+    <select id="selectAccount"></select><br>
+    <input id="resetPass" type="password" placeholder="New Password"><br>
+    <button class="big-button" onclick="changeAccountPassword()">Reset</button>
+    <h3>Change Role</h3>
+    <select id="roleAccount"></select>
+    <button class="big-button" onclick="toggleRole()">Toggle Staff/Customer</button>
+    <button class="big-button" onclick="showSection('dashboard')">Back to Dashboard</button>
+</div>
+
+<!-- VIEW CUSTOMER CARTS -->
+<div id="viewCarts" class="card hidden">
+    <h2>Customer Carts</h2>
+    <select id="selectCartCustomer" onchange="updateSelectedCart()"></select>
+    <div class="cart" id="selectedCartDiv">
+        <h3>Cart Items</h3>
+        <div id="selectedCartItems"></div>
+        <p>Total: $<span id="selectedCartTotal">0</span></p>
+    </div>
+    <button class="big-button" onclick="showSection('dashboard')">Back to Dashboard</button>
+</div>
+
+<script>
+// --- DATA ---
+let accounts = JSON.parse(localStorage.getItem("accounts")) || {
+    "admin": {password:"adminpass", role:"admin"},
+    "cooper.arnot": {password:"adminpass", role:"admin"}
+};
+let salesTotal = JSON.parse(localStorage.getItem("salesTotal")) || 0;
+let customers = JSON.parse(localStorage.getItem("customers")) || [];
+let productCatalog = JSON.parse(localStorage.getItem("productCatalog")) || [];
+let carts = JSON.parse(localStorage.getItem("carts")) || {};
+let currentUser = null;
+
+// --- SAVE ---
+function saveData(){
+    localStorage.setItem("accounts", JSON.stringify(accounts));
+    localStorage.setItem("salesTotal", JSON.stringify(salesTotal));
+    localStorage.setItem("customers", JSON.stringify(customers));
+    localStorage.setItem("productCatalog", JSON.stringify(productCatalog));
+    localStorage.setItem("carts", JSON.stringify(carts));
+}
+
+// --- LOGIN ---
+function login(){
+    let user=document.getElementById("username").value.trim();
+    let pass=document.getElementById("password").value.trim();
+    if(accounts[user] && accounts[user].password===pass){
+        currentUser=user;
+        if(accounts[user].role==="customer") showCustomerDashboard();
+        else showStaffDashboard();
+        updateAll();
+    } else alert("Invalid login.");
+}
+function logout(){ currentUser=null; showSection("login"); }
+function logoutCustomer(){ currentUser=null; showSection("login"); }
+
+// --- CUSTOMER DASHBOARD ---
+function showCustomerDashboard(){
+    showSection("customerDashboard");
+    let cust = customers.find(c=>c.username===currentUser);
+    document.getElementById("currentCustomer").innerText = `${cust.firstName} ${cust.lastName}`;
+    if(!carts[currentUser]) carts[currentUser]={};
+    updateCustomerProductGrid();
+    updateCartDisplay();
+}
+
+// --- STAFF DASHBOARD ---
+function showStaffDashboard(){
+    showSection("dashboard");
+    document.getElementById("currentUser").innerText=currentUser;
+    document.getElementById("accountsBtn").style.display = (accounts[currentUser].role==="admin") ? "block" : "none";
+    document.getElementById("salesBtn").style.display = (currentUser==="cooper.arnot") ? "block" : "none";
+}
+
+// --- CUSTOMER CREATION ---
+function showCreateAccount(){ showSection("createAccount"); }
+function backToLogin(){ showSection("login"); }
+function createCustomerPortalAccount(){
+    let f=document.getElementById("firstName").value.trim();
+    let l=document.getElementById("lastName").value.trim();
+    let dob=document.getElementById("dob").value.trim();
+    let addr=document.getElementById("address").value.trim();
+    let pass=document.getElementById("newPass").value.trim();
+    if(!f||!l||!dob||!addr||!pass){ alert("Fill all fields"); return; }
+    let username = f.toLowerCase()+"."+l.toLowerCase()+Math.floor(Math.random()*10);
+    accounts[username]={password:pass, role:"customer"};
+    customers.push({username, firstName:f, lastName:l, dob, address:addr});
+    saveData(); alert(`Customer account created! Username: ${username}`); backToLogin();
+}
+
+// --- CUSTOMER GRID & CART ---
+function updateCustomerProductGrid(){
+    let grid = document.getElementById("customerProductGrid");
+    grid.innerHTML="";
+    productCatalog.forEach((p,i)=>{
+        let div=document.createElement("div"); div.className="product-card";
+        div.innerHTML=`<h3>${p.name}</h3><img src="${p.image}" width="150" height="150" style="border-radius:10px;"><div class="product-price">$${p.price}</div>`;
+        let btn=document.createElement("button"); btn.textContent="Add to Cart"; btn.className="big-button"; btn.onclick=(e)=>{ e.stopPropagation(); addToCart(i); };
+        div.appendChild(btn);
+        grid.appendChild(div);
+    });
+}
+function addToCart(index){
+    let prod = productCatalog[index];
+    if(!carts[currentUser][prod.name]) carts[currentUser][prod.name]=0;
+    carts[currentUser][prod.name]+=1;
+    saveData(); updateCartDisplay();
+}
+function updateCartDisplay(){
+    let cartDiv = document.getElementById("cartItems"); cartDiv.innerHTML="";
+    let total=0;
+    for(let item in carts[currentUser]){
+        let qty = carts[currentUser][item];
+        let price = productCatalog.find(p=>p.name===item)?.price||0;
+        total+=qty*price;
+        let div = document.createElement("div"); div.className="cart-item";
+        div.textContent=`${item} x${qty} - $${(qty*price).toFixed(2)}`;
+        cartDiv.appendChild(div);
+    }
+    document.getElementById("cartTotal").innerText=total.toFixed(2);
+}
+function checkoutCart(){ alert("Demo checkout complete! Total: $"+document.getElementById("cartTotal").innerText); carts[currentUser]={}; saveData(); updateCartDisplay(); }
+
+// --- NAVIGATION & UTIL ---
+function showSection(id){
+    ["login","createAccount","dashboard","customerDashboard","sales","customers","products","accounts","viewCarts"]
+      .forEach(sec=>document.getElementById(sec).classList.add("hidden"));
+    document.getElementById(id).classList.remove("hidden");
+}
+
+// --- STAFF/ADMIN FUNCTIONS ---
+function updateAll(){ updateCustomerList(); updateProductCatalog(); updateAccountList(); updateSelectedCart(); updateSalesDisplay(); }
+function changeOwnPassword(){ let p=prompt("Enter new password:"); if(p){ accounts[currentUser].password=p; saveData(); alert("Password updated."); } }
+function forgotPassword(){ let user=prompt("Enter your username:"); if(!accounts[user]){ alert("User not found"); return; } let newPass=prompt("Enter new password:"); if(newPass){ accounts[user].password=newPass; saveData(); alert("Password reset."); } }
+
+// --- SALES ---
+function updateSalesDisplay(){ document.getElementById("salesTotal").innerText=salesTotal; }
+function modifySales(){ if(currentUser!=="cooper.arnot"){ alert("Only cooper.arnot can modify sales"); return; } let amt=prompt("Enter + or - amount:"); if(amt) salesTotal+=Number(amt); saveData(); updateSalesDisplay(); }
+
+// --- PRODUCTS ---
+function updateProductCatalog(){ 
+    let div=document.getElementById("productCatalog"); div.innerHTML=""; 
+    productCatalog.forEach((p,i)=>{ 
+        let d=document.createElement("div"); d.className="product-card"; 
+        d.innerHTML=`<h3>${p.name}</h3><img src="${p.image}" width="150" height="150" style="border-radius:10px;"><div class="product-price">$${p.price}</div>`; 
+        div.appendChild(d); 
+    }); 
+}
+
+// --- CUSTOMERS ---
+function updateCustomerList(){
+    let ul = document.getElementById("customerList");
+    if(!ul) return;
+    ul.innerHTML = "";
+    customers.forEach(c => {
+        let li = document.createElement("li");
+        li.textContent = `${c.firstName} ${c.lastName}`;
+        li.style.cursor = "pointer";
+        li.onclick = () => {
+            alert(
+                `Username: ${c.username}\n` +
+                `First Name: ${c.firstName}\n` +
+                `Last Name: ${c.lastName}\n` +
+                `Date of Birth: ${c.dob}\n` +
+                `Address: ${c.address}`
+            );
+        };
+        if(currentUser==="cooper.arnot"){
+            let delBtn = document.createElement("button"); delBtn.textContent="Delete";
+            delBtn.style.marginLeft="10px"; delBtn.style.padding="5px 10px"; delBtn.style.borderRadius="8px"; delBtn.style.border="none"; delBtn.style.cursor="pointer";
+            delBtn.style.background="#e74c3c"; delBtn.style.color="white";
+            delBtn.onclick = (e)=>{ e.stopPropagation(); if(confirm(`Delete customer ${c.firstName} ${c.lastName}?`)){ customers = customers.filter(cs=>cs.username!==c.username); delete carts[c.username]; saveData(); updateCustomerList(); alert(`${c.firstName} ${c.lastName} deleted.`); } };
+            li.appendChild(delBtn);
+        }
+        ul.appendChild(li);
+    });
+}
+function addCustomer(){ if(currentUser!=="cooper.arnot"){ alert("Only cooper.arnot can add."); return; } showCreateAccount(); }
+
+// --- ACCOUNTS ---
+function updateAccountList(){
+    let ul=document.getElementById("accountList"); ul.innerHTML="";
+    for(let u in accounts){ ul.innerHTML+=`<li>${u} (${accounts[u].role}) ${(u!=="cooper.arnot")?`<button onclick="removeAccount('${u}')">Delete</button>`:""}</li>`; }
+    let select=document.getElementById("selectAccount"); let roleSel=document.getElementById("roleAccount");
+    select.innerHTML=""; roleSel.innerHTML="";
+    for(let u in accounts){ select.innerHTML+=`<option value="${u}">${u}</option>`; if(u!=="cooper.arnot") roleSel.innerHTML+=`<option value="${u}">${u} (${accounts[u].role})</option>`; }
+}
+function addAccount(){ let u=document.getElementById("newAccount").value.trim(); let p=document.getElementById("newAccountPass").value.trim(); if(!u||!p){alert("Fill all fields");return;} accounts[u]={password:p,role:"staff"}; saveData(); updateAccountList(); }
+function removeAccount(u){ if(u==="cooper.arnot"){alert("Cannot remove cooper.arnot");return;} delete accounts[u]; saveData(); updateAccountList(); }
+function changeAccountPassword(){ let acc=document.getElementById("selectAccount").value; let pass=document.getElementById("resetPass").value.trim(); if(!pass){alert("Enter password");return;} accounts[acc].password=pass; saveData(); alert("Password reset for "+acc); }
+function toggleRole(){ let acc=document.getElementById("roleAccount").value; accounts[acc].role=accounts[acc].role==="staff"?"customer":"staff"; saveData(); updateAccountList(); }
+
+// --- VIEW CUSTOMER CARTS ---
+function updateSelectedCart(){
+    let sel=document.getElementById("selectCartCustomer").value; 
+    if(!sel) return;
+    let div=document.getElementById("selectedCartItems"); div.innerHTML="";
+    let total=0;
+    for(let item in carts[sel]||{}){
+        let qty=carts[sel][item]; let price=productCatalog.find(p=>p.name===item)?.price||0; total+=qty*price;
+        let d=document.createElement("div"); d.className="cart-item"; d.textContent=`${item} x${qty} - $${(qty*price).toFixed(2)}`; div.appendChild(d);
+    }
+    document.getElementById("selectedCartTotal").innerText=total.toFixed(2);
+}
+function populateCartSelect(){ let sel=document.getElementById("selectCartCustomer"); sel.innerHTML=""; customers.forEach(c=>sel.innerHTML+=`<option value="${c.username}">${c.firstName} ${c.lastName}</option>`); updateSelectedCart(); }
+
+// --- INIT ---
+function init(){ updateAll(); populateCartSelect(); }
+init();
+</script>
+</body>
+</html>
